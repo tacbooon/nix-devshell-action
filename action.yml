@@ -1,0 +1,34 @@
+name: 'Nix DevShell Action'
+description: 'Load Nix devShell environment into GitHub Actions'
+author: 'tacbooon'
+
+branding:
+  icon: 'terminal'
+  color: 'blue'
+
+inputs:
+  flake:
+    description: 'Path or URI to the flake (e.g. ".", "./subdir", "github:owner/repo")'
+    required: false
+    default: '.'
+  export-env:
+    description: 'Newline-separated glob patterns for devShell env vars to export. Empty exports nothing.'
+    required: false
+    default: ''
+  export-path:
+    description: 'Newline-separated glob patterns for PATH entries to add. Empty disables PATH modification. $GITHUB_WORKSPACE and $PWD are expanded.'
+    required: false
+    default: |
+      /nix/store/*
+      $GITHUB_WORKSPACE/*
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Load devShell environment
+      shell: bash
+      env:
+        FLAKE: ${{ inputs.flake }}
+        EXPORT_ENV: ${{ inputs.export-env }}
+        EXPORT_PATH: ${{ inputs.export-path }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/load-devshell.sh"

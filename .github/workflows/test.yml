@@ -1,0 +1,62 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - name: Cache Nix store
+        uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+      - name: Load dev tools via local action
+        uses: ./
+      - name: Run nixfmt check
+        run: git ls-files -z '*.nix' | xargs -0 nixfmt --check
+      - name: Run actionlint check
+        run: actionlint
+      - name: Run zizmor check
+        run: zizmor . --persona auditor
+      - name: Run ShellCheck
+        run: shellcheck scripts/*.sh
+      - name: Run Bats tests
+        run: bats tests/
+      - name: Load fixture devShell via local action
+        uses: ./
+        with:
+          flake: .#fixture
+          export-env: |
+            FIXTURE_*
+      - name: Verify devShell environment
+        run: |
+          set -euo pipefail
+          echo "checking hello from nixpkgs..."
+          hello
+          echo "checking exported env vars..."
+          test "${FIXTURE_APP_NAME:-}" = "fixture-app"
+          test "${FIXTURE_DB_HOST:-}" = "localhost"
+          echo "all integration checks passed"

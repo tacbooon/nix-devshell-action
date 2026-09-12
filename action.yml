@@ -8,7 +8,7 @@ branding:
 
 inputs:
   flake:
-    description: 'Path or URI to the flake (e.g. ".", "./subdir", "github:owner/repo")'
+    description: 'Path, URI, or flake reference (installable) (e.g. ".", "./subdir", ".#ci", "github:owner/repo")'
     required: false
     default: '.'
   export-env:

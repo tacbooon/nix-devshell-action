@@ -1,0 +1,38 @@
+name: Update major tag
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions: {}
+
+concurrency:
+  group: update-major-tag
+
+jobs:
+  update-major-tag:
+    name: Update major and minor tags
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # Required to push the moved major/minor tags.
+    steps:
+      - name: Checkout # zizmor: ignore[artipacked] reason: persisted credentials are required to push the moved tags; this workflow uploads no artifacts.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Move major and minor tags
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME:?GITHUB_REF_NAME is not set}"
+          if [[ "$tag" =~ ^v([0-9]+)\.([0-9]+)\.[0-9]+$ ]]; then
+            major="v${BASH_REMATCH[1]}"
+            minor="v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+          else
+            echo "Tag '$tag' is not a release tag; skipping."
+            exit 0
+          fi
+          git update-ref "refs/tags/$major" "$GITHUB_SHA"
+          git update-ref "refs/tags/$minor" "$GITHUB_SHA"
+          git push --force origin "refs/tags/$major" "refs/tags/$minor"

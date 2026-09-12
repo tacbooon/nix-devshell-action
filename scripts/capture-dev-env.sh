@@ -38,7 +38,9 @@ while IFS='=' read -r -d '' name value; do
     _ |\
     ACTIONS_* |\
     BASHOPTS |\
+    BASH_ENV |\
     CI |\
+    ENV |\
     EUID |\
     GITHUB_* |\
     IFS |\

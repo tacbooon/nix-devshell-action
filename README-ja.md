@@ -91,7 +91,7 @@ Languages: [English](README.md)
 
 例えば、devShell が環境変数 `APP_NAME` と `MYAPP_URL` を定義すると仮定します。`APP_*` にマッチする `APP_NAME` は `GITHUB_ENV` に書き込まれて後続のステップで参照できます。しかし、`MYAPP_URL` はマッチするパターンが存在しないため `GITHUB_ENV` に書き込まれません。
 
-例外として `_` `ACTIONS_*` `BASHOPTS` `CI` `EUID` `GITHUB_*` `IFS` `OLDPWD` `PATH` `PPID` `PWD` `RUNNER_*` `SHELLOPTS` `SHLVL` `UID` についてはパターンにマッチしても `GITHUB_ENV` に書き込まれることはありません。
+例外として `_` `ACTIONS_*` `BASHOPTS` `BASH_ENV` `CI` `ENV` `EUID` `GITHUB_*` `IFS` `OLDPWD` `PATH` `PPID` `PWD` `RUNNER_*` `SHELLOPTS` `SHLVL` `UID` についてはパターンにマッチしても `GITHUB_ENV` に書き込まれることはありません。
 
 ## 思想
 

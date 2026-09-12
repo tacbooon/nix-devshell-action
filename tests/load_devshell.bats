@@ -276,6 +276,50 @@ MOCK
   grep -q "$fakepathdir" "$GITHUB_PATH"
 }
 
+@test "main: preserves devShell PATH priority for duplicate tools" {
+  fakebin="$TEST_TMPDIR/fakebin"
+  dir_a="$TEST_TMPDIR/dir_a"
+  dir_b="$TEST_TMPDIR/dir_b"
+  mkdir -p "$fakebin" "$dir_a" "$dir_b"
+  # Two dirs providing the same tool name; dir_a has higher devShell priority.
+  printf '#!/usr/bin/env bash\necho "from-a"\n' > "$dir_a/dup-tool"
+  printf '#!/usr/bin/env bash\necho "from-b"\n' > "$dir_b/dup-tool"
+  chmod +x "$dir_a/dup-tool" "$dir_b/dup-tool"
+  # Mock `nix print-dev-env` to prepend dir_a before dir_b on PATH.
+  cat > "$fakebin/nix" <<MOCK
+#!/usr/bin/env bash
+echo "export PATH=\"$dir_a:$dir_b:\$PATH\""
+MOCK
+  chmod +x "$fakebin/nix"
+
+  run bash -c '
+    source "$1/scripts/load-devshell.sh"
+    export PATH="$2:$PATH"
+    export FLAKE="."
+    export EXPORT_ENV=""
+    export EXPORT_PATH="$3/*"
+    main
+  ' _ "$REPO_ROOT" "$fakebin" "$TEST_TMPDIR"
+  [ "$status" -eq 0 ]
+  # try_write_path resolves symlinks (e.g. /tmp on macOS), so compare resolved paths.
+  dir_a_resolved="$(cd -- "$dir_a" && pwd -P)"
+  dir_b_resolved="$(cd -- "$dir_b" && pwd -P)"
+  grep -q "$dir_a_resolved" "$GITHUB_PATH"
+  grep -q "$dir_b_resolved" "$GITHUB_PATH"
+  # Entries are written in reverse so that the runner, which prepends each
+  # GITHUB_PATH line in file order, restores the devShell priority.
+  line_a="$(grep -n "$dir_a_resolved" "$GITHUB_PATH" | cut -d: -f1)"
+  line_b="$(grep -n "$dir_b_resolved" "$GITHUB_PATH" | cut -d: -f1)"
+  [ "$line_b" -lt "$line_a" ]
+  # Simulate how the runner applies GITHUB_PATH and check which tool wins.
+  simulated_path="$PATH"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -n "$line" ]] && simulated_path="$line:$simulated_path"
+  done < "$GITHUB_PATH"
+  [ "$(PATH="$simulated_path" bash -c 'command -v dup-tool')" = "$dir_a_resolved/dup-tool" ]
+  [ "$(PATH="$simulated_path" dup-tool)" = "from-a" ]
+}
+
 @test "main: empty EXPORT_PATH disables PATH export" {
   fakebin="$TEST_TMPDIR/fakebin"
   fakepathdir="$TEST_TMPDIR/newpath"

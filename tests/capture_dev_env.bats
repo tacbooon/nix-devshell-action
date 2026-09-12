@@ -56,11 +56,16 @@ export GITHUB_TOKEN_CHANGED="new-value"
 export CI="true"
 export RUNNER_TRACKING_ID="x"
 export ACTIONS_CACHE_URL="http://example.invalid"
+export BASH_ENV="/tmp/malicious-env"
+export ENV="/tmp/malicious-env"
 EOF
   run capture_lines "$TEST_TMPDIR/setup.sh"
   [ "$status" -eq 0 ]
   [[ "$output" != *"GITHUB_TOKEN_CHANGED"* ]]
   [[ "$output" != *"ACTIONS_CACHE_URL"* ]]
+  [[ "$output" != *"BASH_ENV"* ]]
+  [[ "$output" != "ENV="* ]]
+  [[ "$output" != *$'\nENV='* ]]
   # CI=false is preset by bats; changing it must still be filtered.
   [[ "$output" != *$'\nCI='* ]]
 }

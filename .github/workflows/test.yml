@@ -38,7 +38,7 @@ jobs:
           primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-
       - name: Load dev tools via local action
-        uses: ./
+        uses: $/
       - name: Run nixfmt check
         run: git ls-files -z '*.nix' | xargs -0 nixfmt --check
       - name: Run actionlint check
@@ -50,7 +50,7 @@ jobs:
       - name: Run Bats tests
         run: bats tests/
       - name: Load fixture devShell via local action
-        uses: ./
+        uses: $/
         with:
           flake: .#fixture
           export-env: |

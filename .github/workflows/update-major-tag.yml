@@ -21,7 +21,7 @@ jobs:
     permissions:
       contents: write # Required to push the moved major/minor tags.
     steps:
-      - name: Checkout # zizmor: ignore[artipacked] reason: persisted credentials are required to push the moved tags; this workflow uploads no artifacts.
+      - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0

@@ -40,7 +40,6 @@
               pkgs.jactionlint
               pkgs.nixfmt
               pkgs.shellcheck
-              pkgs.zizmor
             ];
           };
           fixture = pkgs.mkShell {

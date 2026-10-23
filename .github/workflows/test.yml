@@ -43,7 +43,7 @@ jobs:
       - name: Load dev tools via local action
         uses: $/
       - name: Run nixfmt check
-        run: git ls-files -z '*.nix' | xargs -0 nixfmt --check
+        run: nix fmt -- --ci
       - name: Run jactionlint check
         run: jactionlint
       - name: Run ShellCheck

@@ -40,12 +40,18 @@ while IFS='=' read -r -d '' name value; do
     BASHOPTS |\
     BASH_ENV |\
     CI |\
+    DYLD_INSERT_LIBRARIES |\
     ENV |\
     EUID |\
     GITHUB_* |\
     IFS |\
+    LD_AUDIT |\
+    LD_PRELOAD |\
+    NODE_OPTIONS |\
     OLDPWD |\
     PPID |\
+    PROMPT_COMMAND |\
+    PS4 |\
     PWD |\
     RUNNER_* |\
     SHELLOPTS |\

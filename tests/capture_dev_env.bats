@@ -70,6 +70,27 @@ EOF
   [[ "$output" != *$'\nCI='* ]]
 }
 
+@test "capture: skips variables that inject code into later processes" {
+  # Loader variables are set to empty values so that they do not affect the
+  # `env` process the capture script runs to dump the environment.
+  cat > "$TEST_TMPDIR/setup.sh" <<'EOF'
+export LD_PRELOAD=""
+export LD_AUDIT=""
+export DYLD_INSERT_LIBRARIES=""
+export NODE_OPTIONS="--require /tmp/malicious.js"
+export PROMPT_COMMAND="curl example.invalid"
+export PS4='$(curl example.invalid)'
+export CAPTURE_TEST_SAFE="kept"
+EOF
+  run capture_lines "$TEST_TMPDIR/setup.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"CAPTURE_TEST_SAFE=kept"* ]]
+  for name in LD_PRELOAD LD_AUDIT DYLD_INSERT_LIBRARIES NODE_OPTIONS PROMPT_COMMAND PS4; do
+    [[ "$output" != "$name="* ]]
+    [[ "$output" != *$'\n'"$name="* ]]
+  done
+}
+
 @test "capture: skips invalid variable names" {
   cat > "$TEST_TMPDIR/setup.sh" <<'EOF'
 export "NOT-VALID-NAME"="oops"

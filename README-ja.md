@@ -91,7 +91,9 @@ Languages: [English](README.md)
 
 例えば、devShell が環境変数 `APP_NAME` と `MYAPP_URL` を定義すると仮定します。`APP_*` にマッチする `APP_NAME` は `GITHUB_ENV` に書き込まれて後続のステップで参照できます。しかし、`MYAPP_URL` はマッチするパターンが存在しないため `GITHUB_ENV` に書き込まれません。
 
-例外として `_` `ACTIONS_*` `BASHOPTS` `BASH_ENV` `CI` `ENV` `EUID` `GITHUB_*` `IFS` `OLDPWD` `PATH` `PPID` `PWD` `RUNNER_*` `SHELLOPTS` `SHLVL` `UID` についてはパターンにマッチしても `GITHUB_ENV` に書き込まれることはありません。
+例外として `_` `ACTIONS_*` `BASHOPTS` `BASH_ENV` `CI` `DYLD_INSERT_LIBRARIES` `ENV` `EUID` `GITHUB_*` `IFS` `LD_AUDIT` `LD_PRELOAD` `NODE_OPTIONS` `OLDPWD` `PATH` `PPID` `PROMPT_COMMAND` `PS4` `PWD` `RUNNER_*` `SHELLOPTS` `SHLVL` `UID` についてはパターンにマッチしても `GITHUB_ENV` に書き込まれることはありません。このうち `LD_PRELOAD` などは、後続ステップのあらゆるプロセスに任意のコードを読み込ませられる変数です。
+
+devShell は明示的に定義した変数以外にも多くの変数を書き換えます。`*` のような広いパターンは避け、必要な変数だけにマッチするパターンを指定してください。
 
 ## 思想
 

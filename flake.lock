@@ -16,9 +16,30 @@
         "type": "github"
       }
     },
+    "nixpkgs-extras": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792757593,
+        "narHash": "sha256-FJY05SYaSHVuazdlDPeM3dM09IjRU6o3wBntM/rRopA=",
+        "owner": "tacbooon",
+        "repo": "nixpkgs-extras",
+        "rev": "ac623bccd570cef4982b431ea52a797c2c6d3a94",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tacbooon",
+        "repo": "nixpkgs-extras",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "nixpkgs-extras": "nixpkgs-extras"
       }
     }
   },

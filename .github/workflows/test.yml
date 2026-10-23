@@ -21,6 +21,9 @@ jobs:
     name: Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -41,8 +44,8 @@ jobs:
         uses: $/
       - name: Run nixfmt check
         run: git ls-files -z '*.nix' | xargs -0 nixfmt --check
-      - name: Run actionlint check
-        run: actionlint
+      - name: Run jactionlint check
+        run: jactionlint
       - name: Run zizmor check
         run: zizmor . --persona auditor
       - name: Run ShellCheck

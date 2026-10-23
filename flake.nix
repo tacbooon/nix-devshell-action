@@ -1,10 +1,20 @@
 {
   description = "Dev shell for nix-devshell-action contributors";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs-extras = {
+      url = "github:tacbooon/nixpkgs-extras";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
   outputs =
-    { self, nixpkgs }:
+    {
+      self,
+      nixpkgs,
+      nixpkgs-extras,
+    }:
     let
       forAllSystems = nixpkgs.lib.genAttrs [
         "x86_64-linux"
@@ -17,14 +27,17 @@
       devShells = forAllSystems (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ nixpkgs-extras.overlays.default ];
+          };
         in
         {
           default = pkgs.mkShell {
             packages = [
-              pkgs.actionlint
               pkgs.bats
               pkgs.gh
+              pkgs.jactionlint
               pkgs.nixfmt
               pkgs.shellcheck
               pkgs.zizmor

@@ -15,6 +15,9 @@ jobs:
     name: Update major and minor tags
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    defaults:
+      run:
+        shell: bash
     permissions:
       contents: write # Required to push the moved major/minor tags.
     steps:

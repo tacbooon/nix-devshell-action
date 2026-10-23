@@ -75,6 +75,8 @@ Suppose the devShell adds `/path/to/bin/dir` and `/path/to/other/dir` to `PATH`.
 
 Only `GITHUB_WORKSPACE` and `PWD` can be expanded as environment variables in this option.
 
+Patterns are matched against the physical path of each directory, with symlinks and `..` segments resolved, and that resolved path is what gets written to `GITHUB_PATH`. A symlink under an allowed prefix that points somewhere else is therefore matched against its target. `GITHUB_WORKSPACE` and `PWD` are likewise expanded to their physical paths.
+
 ### export-env
 
 Glob patterns used to filter which environment variables are written to `GITHUB_ENV`. Use a newline-separated list for multiple patterns.

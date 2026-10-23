@@ -43,22 +43,36 @@ escape_glob() {
 # Other $-forms are left untouched to avoid unintended expansion.
 # Expansion is skipped when the variable is unset/empty, leaving the pattern
 # as-is (which then matches nothing) instead of expanding to "/*".
+# Values are resolved to their physical paths (symlinks resolved) because
+# try_write_path matches patterns against physical paths.
 expand_path_pattern() {
   local pat="$1"
   local ws="${GITHUB_WORKSPACE:-}"
   local pwd_val="${PWD:-}"
   local esc
   if [[ -n "$ws" ]]; then
-    esc="$(escape_glob "$ws")"
+    esc="$(escape_glob "$(physical_path "$ws")")"
     pat="${pat//\$\{GITHUB_WORKSPACE\}/$esc}"
     pat="${pat//\$GITHUB_WORKSPACE/$esc}"
   fi
   if [[ -n "$pwd_val" ]]; then
-    esc="$(escape_glob "$pwd_val")"
+    esc="$(escape_glob "$(physical_path "$pwd_val")")"
     pat="${pat//\$\{PWD\}/$esc}"
     pat="${pat//\$PWD/$esc}"
   fi
   printf '%s' "$pat"
+}
+
+# Print the physical path of directory $1 (symlinks and '..' resolved).
+# Falls back to $1 unchanged when it is not an accessible directory.
+physical_path() {
+  local dir="$1"
+  local resolved
+  if resolved="$(CDPATH='' cd -- "$dir" 2>/dev/null && pwd -P)" && [[ -n "$resolved" ]]; then
+    printf '%s' "$resolved"
+  else
+    printf '%s' "$dir"
+  fi
 }
 
 # Succeed if $1 matches any of the remaining args as glob patterns.
@@ -82,11 +96,13 @@ try_write_path() {
   [[ -n "$entry" && -d "$entry" ]] || return 0
 
   [[ ${#EXPORT_PATH_PATTERNS[@]} -eq 0 ]] && return 0
-  matches_any "$entry" "${EXPORT_PATH_PATTERNS[@]}" || return 0
 
+  # Match patterns against the physical path that is actually written, so a
+  # symlink or '..' segment under an allowed prefix cannot point outside it.
   local resolved
-  resolved="$(cd -- "$entry" 2>/dev/null && pwd -P)" || return 0
+  resolved="$(CDPATH='' cd -- "$entry" 2>/dev/null && pwd -P)" || return 0
   [[ -n "$resolved" ]] || return 0
+  matches_any "$resolved" "${EXPORT_PATH_PATTERNS[@]}" || return 0
   if [[ ":$PATH:" == *":$entry:"* || ":$PATH:" == *":$resolved:"* ]]; then
     return 0
   fi

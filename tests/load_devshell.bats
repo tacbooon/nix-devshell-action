@@ -9,7 +9,9 @@ setup() {
   # shellcheck disable=SC1091
   source "$REPO_ROOT/scripts/load-devshell.sh"
 
-  TEST_TMPDIR="$(mktemp -d)"
+  # Use the physical path (e.g. /private/var/... on macOS) because PATH
+  # patterns are matched against physical paths.
+  TEST_TMPDIR="$(cd "$(mktemp -d)" && pwd -P)"
   export GITHUB_ENV="$TEST_TMPDIR/github_env"
   export GITHUB_PATH="$TEST_TMPDIR/github_path"
   touch "$GITHUB_ENV" "$GITHUB_PATH"
@@ -107,6 +109,18 @@ teardown() {
   [ "$output" = '/tmp/my \[bracket\]\*dir/*' ]
 }
 
+@test "expand_path_pattern: resolves a symlinked \$GITHUB_WORKSPACE" {
+  mkdir -p "$TEST_TMPDIR/real-ws"
+  ln -s "$TEST_TMPDIR/real-ws" "$TEST_TMPDIR/ws-link"
+  export GITHUB_WORKSPACE="$TEST_TMPDIR/ws-link"
+  run bash -c '
+    source "$1/scripts/load-devshell.sh"
+    expand_path_pattern "\$GITHUB_WORKSPACE/*"
+  ' _ "$REPO_ROOT"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$TEST_TMPDIR/real-ws/*" ]
+}
+
 # --- matches_any ---
 
 @test "matches_any: matches glob patterns" {
@@ -170,6 +184,32 @@ teardown() {
   PATH="/usr/bin:/bin"
   try_write_path "$TEST_TMPDIR/fakebin"
   [ ! -s "$GITHUB_PATH" ]
+}
+
+@test "try_write_path: skips symlinks that resolve outside allowed patterns" {
+  mkdir -p "$TEST_TMPDIR/allowed" "$TEST_TMPDIR/outside"
+  ln -s "$TEST_TMPDIR/outside" "$TEST_TMPDIR/allowed/escape"
+  EXPORT_PATH_PATTERNS=("$TEST_TMPDIR/allowed/*")
+  PATH="/usr/bin:/bin"
+  try_write_path "$TEST_TMPDIR/allowed/escape"
+  [ ! -s "$GITHUB_PATH" ]
+}
+
+@test "try_write_path: skips '..' segments that resolve outside allowed patterns" {
+  mkdir -p "$TEST_TMPDIR/allowed/sub" "$TEST_TMPDIR/outside"
+  EXPORT_PATH_PATTERNS=("$TEST_TMPDIR/allowed/*")
+  PATH="/usr/bin:/bin"
+  try_write_path "$TEST_TMPDIR/allowed/sub/../../outside"
+  [ ! -s "$GITHUB_PATH" ]
+}
+
+@test "try_write_path: accepts symlinks that resolve inside allowed patterns" {
+  mkdir -p "$TEST_TMPDIR/allowed/real"
+  ln -s "$TEST_TMPDIR/allowed/real" "$TEST_TMPDIR/link"
+  EXPORT_PATH_PATTERNS=("$TEST_TMPDIR/allowed/*")
+  PATH="/usr/bin:/bin"
+  try_write_path "$TEST_TMPDIR/link"
+  [ "$(cat "$GITHUB_PATH")" = "$TEST_TMPDIR/allowed/real" ]
 }
 
 @test "try_write_path: skips non-existent dirs" {

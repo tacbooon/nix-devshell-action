@@ -75,6 +75,8 @@ Languages: [English](README.md)
 
 なお、このオプションが展開できる環境変数は `GITHUB_WORKSPACE` と `PWD` だけです。
 
+パターンとの照合には、symlink や `..` を解決した物理パスを使います。`GITHUB_PATH` に書き込まれるのも、その解決後のパスです。そのため、許可したディレクトリ配下に別の場所を指す symlink があっても、照合されるのはリンク先のパスです。`GITHUB_WORKSPACE` と `PWD` も物理パスに展開されます。
+
 ### export-env
 
 `GITHUB_ENV` に書き込む環境変数のフィルタリングに使用する glob パターンのリストです。複数パターンを指定する場合は改行で区切ります。

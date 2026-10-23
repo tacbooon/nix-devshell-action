@@ -24,6 +24,8 @@
       ];
     in
     {
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
+
       devShells = forAllSystems (
         system:
         let

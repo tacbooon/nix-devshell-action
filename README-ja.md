@@ -6,8 +6,9 @@ Languages: [English](README.md)
 
 ## 前提条件
 
-- Nix がインストールされており、Flakes が有効化されていることが必要です。
-- `openssl` が利用可能であることが必要です。GitHub ホステッドランナーにはデフォルトで含まれています。
+- Linux または macOS ランナーで実行する必要があります。Windows ランナーには対応していません。
+- Nix がインストールされており、Flakes が有効化されていることが必要です。GitHub-hosted runner にはデフォルトで含まれていません。
+- `bash` と `openssl` が必要です。いずれも GitHub-hosted runner にはデフォルトで含まれています。
 
 ## 基本的な使い方
 
@@ -77,6 +78,8 @@ Languages: [English](README.md)
 
 パターンとの照合には、symlink や `..` を解決した物理パスを使います。`GITHUB_PATH` に書き込まれるのも、その解決後のパスです。そのため、許可したディレクトリ配下に別の場所を指す symlink があっても、照合されるのはリンク先のパスです。`GITHUB_WORKSPACE` と `PWD` も物理パスに展開されます。
 
+このアクションの実行前に既に `PATH` に存在しているディレクトリは、重複して `GITHUB_PATH` に追加されません。
+
 ### export-env
 
 `GITHUB_ENV` に書き込む環境変数のフィルタリングに使用する glob パターンのリストです。複数パターンを指定する場合は改行で区切ります。
@@ -111,6 +114,10 @@ GitHub Actions の composite action はジョブレベルの `defaults.run.worki
 
 指定した場合、相対パスの `flake` や `export-path` 内の `$PWD` はこのディレクトリを基準に解決されます。
 
+## 制限事項
+
+定義済の環境変数を devShell で `unset` しても後続のステップには反映されません。`$GITHUB_ENV` には変数を削除する構文がないからです。
+
 ## 思想
 
 このアクションがデフォルトで全てのパスと環境変数を出力しないのは後段のステップへの予期しない副作用を避けるためです。devShell 環境はあなたが明示的に定義した変数以外にも非常に多くの変数を書き換えます。これを全て暗黙的に後段のステップに引き継ぐべきではありません。あなたが作成するステップはもちろん、GitHub で配布される多くのアクションもこれに対応できません。
@@ -124,6 +131,26 @@ GitHub Actions の composite action はジョブレベルの `defaults.run.worki
 ## 開発
 
 コントリビュータは `nix develop` を使用して開発環境を構築できます。ツールの一覧については `flake.nix` を参照してください。
+
+ローカルでテストとリントを実行するコマンド:
+
+```bash
+# テストの実行
+nix develop -c bats tests/
+
+# ShellCheck の実行
+nix develop -c shellcheck scripts/*.sh
+nix develop -c shellcheck --severity=warning tests/*.bats
+
+# Nix ファイルのフォーマット
+nix fmt
+
+# Nix フォーマットチェック
+nix fmt -- --ci
+
+# GitHub Actions ワークフローのリント
+nix develop -c jactionlint
+```
 
 ## ライセンス
 

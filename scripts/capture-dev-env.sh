@@ -17,6 +17,7 @@ merged_env="$workdir/merged_env"
 "$ENV_BIN" -0 > "$base_env"
 set +e +u
 set +o pipefail
+# shellcheck disable=SC1090
 source "$setup_dev_env" >&2
 set -euo pipefail
 "$ENV_BIN" -0 > "$merged_env"

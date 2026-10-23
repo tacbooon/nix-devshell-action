@@ -97,6 +97,20 @@ The following are never written to `GITHUB_ENV`, even when they match a pattern:
 
 A devShell rewrites many more variables than the ones you define explicitly. Avoid broad patterns such as `*` and list only patterns that match the variables you need.
 
+### working-directory
+
+Working directory to run the action in. Defaults to the repository root (`.`).
+
+GitHub Actions composite actions do not inherit job-level `defaults.run.working-directory`. Use this option in monorepos or projects where the flake is in a subdirectory:
+
+```yaml
+- uses: tacbooon/nix-devshell-action@v1
+  with:
+    working-directory: ./packages/app
+```
+
+When set, relative `flake` paths and `$PWD` in `export-path` are resolved relative to this directory.
+
 ## Design
 
 By default this action does not export every path and variable, in order to avoid unexpected side effects in later steps. A devShell rewrites far more variables than the ones you define explicitly, and neither your own steps nor other GitHub Actions are designed to inherit all of them implicitly.

@@ -115,10 +115,11 @@ try_write_path() {
 try_write_env() {
   local name="$1"
   local value="$2"
-  local delimiter
-  delimiter="EOF_$(openssl rand -hex 16)"
   [[ ${#EXPORT_ENV_PATTERNS[@]} -eq 0 ]] && return 0
   matches_any "$name" "${EXPORT_ENV_PATTERNS[@]}" || return 0
+
+  local delimiter
+  delimiter="EOF_$(openssl rand -hex 16)"
   echo "ENV: $name"
   printf '%s<<%s\n%s\n%s\n' "$name" "$delimiter" "$value" "$delimiter" >> "$GITHUB_ENV"
 }

@@ -50,6 +50,8 @@
             shellHook = ''
               export FIXTURE_APP_NAME="fixture-app"
               export FIXTURE_DB_HOST="localhost"
+              export UNEXPORTED_SECRET="should-not-be-exported"
+              export BASH_ENV="should-be-denylisted"
             '';
           };
         }

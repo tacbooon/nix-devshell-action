@@ -93,6 +93,20 @@ Languages: [English](README.md)
 
 例外として `_` `ACTIONS_*` `BASHOPTS` `BASH_ENV` `CI` `ENV` `EUID` `GITHUB_*` `IFS` `OLDPWD` `PATH` `PPID` `PWD` `RUNNER_*` `SHELLOPTS` `SHLVL` `UID` についてはパターンにマッチしても `GITHUB_ENV` に書き込まれることはありません。
 
+### working-directory
+
+アクションを実行する作業ディレクトリ。デフォルトはリポジトリのルート (`.`) です。
+
+GitHub Actions の composite action はジョブレベルの `defaults.run.working-directory` を継承しません。モノレポや flake がサブディレクトリにあるプロジェクトで利用してください。
+
+```yaml
+- uses: tacbooon/nix-devshell-action@v1
+  with:
+    working-directory: ./packages/app
+```
+
+指定した場合、相対パスの `flake` や `export-path` 内の `$PWD` はこのディレクトリを基準に解決されます。
+
 ## 思想
 
 このアクションがデフォルトで全てのパスと環境変数を出力しないのは後段のステップへの予期しない副作用を避けるためです。devShell 環境はあなたが明示的に定義した変数以外にも非常に多くの変数を書き換えます。これを全て暗黙的に後段のステップに引き継ぐべきではありません。あなたが作成するステップはもちろん、GitHub で配布される多くのアクションもこれに対応できません。

@@ -36,6 +36,31 @@ jobs:
             echo "Tag '$tag' is not a release tag; skipping."
             exit 0
           fi
-          git update-ref "refs/tags/$major" "$GITHUB_SHA"
-          git update-ref "refs/tags/$minor" "$GITHUB_SHA"
-          git push --force origin "refs/tags/$major" "refs/tags/$minor"
+
+          # Print the highest vX.Y.Z release tag under the given prefix
+          # (e.g. "v1" -> v1.*.*, "v1.2" -> v1.2.*).
+          latest_release() {
+            git tag -l "$1.*" \
+              | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } \
+              | sort -V \
+              | tail -n 1
+          }
+
+          # Only move a floating tag when this release is the newest one it
+          # covers, so pushing a backport (e.g. v1.0.1 after v1.1.0) does not
+          # roll v1 back to an older release.
+          refs=()
+          for floating in "$major" "$minor"; do
+            latest="$(latest_release "$floating")"
+            if [[ "$latest" != "$tag" ]]; then
+              echo "Not moving $floating: $tag is older than $latest."
+              continue
+            fi
+            echo "Moving $floating to $tag."
+            git update-ref "refs/tags/$floating" "$GITHUB_SHA"
+            refs+=("refs/tags/$floating")
+          done
+
+          if [[ ${#refs[@]} -gt 0 ]]; then
+            git push --force origin "${refs[@]}"
+          fi

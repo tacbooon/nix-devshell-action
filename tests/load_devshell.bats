@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2034
 
 # Unit tests for scripts/load-devshell.sh helper functions.
 # These tests source the script (main is guarded) and exercise the

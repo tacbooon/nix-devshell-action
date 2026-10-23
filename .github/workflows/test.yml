@@ -47,7 +47,9 @@ jobs:
       - name: Run jactionlint check
         run: jactionlint
       - name: Run ShellCheck
-        run: shellcheck scripts/*.sh
+        run: |
+          shellcheck scripts/*.sh
+          shellcheck --severity=warning tests/*.bats
       - name: Run Bats tests
         run: bats tests/
       - name: Load fixture devShell via local action
@@ -56,6 +58,7 @@ jobs:
           flake: .#fixture
           export-env: |
             FIXTURE_*
+            BASH_ENV
       - name: Verify devShell environment
         run: |
           set -euo pipefail
@@ -64,4 +67,7 @@ jobs:
           echo "checking exported env vars..."
           test "${FIXTURE_APP_NAME:-}" = "fixture-app"
           test "${FIXTURE_DB_HOST:-}" = "localhost"
+          echo "checking unexported and denylisted env vars..."
+          test -z "${UNEXPORTED_SECRET:-}"
+          test -z "${BASH_ENV:-}"
           echo "all integration checks passed"

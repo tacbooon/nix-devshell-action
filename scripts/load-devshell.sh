@@ -147,9 +147,16 @@ main() {
   workdir="$(mktemp -d)"
   trap 'rm -rf -- "$workdir"' EXIT
 
+  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+    echo "::group::Loading devShell environment ($flake)"
+  fi
+
   # Generate shell code that sets up the devShell environment.
   local setup_dev_env="$workdir/setup-dev-env.sh"
   if ! nix print-dev-env --no-write-lock-file -- "$flake" > "$setup_dev_env"; then
+    if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+      echo "::endgroup::"
+    fi
     echo "error: failed to run 'nix print-dev-env' for flake '$flake'." >&2
     return 1
   fi
@@ -171,6 +178,10 @@ main() {
       try_write_env "$name" "$value"
     fi
   done < "$dev_env"
+
+  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+    echo "::endgroup::"
+  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

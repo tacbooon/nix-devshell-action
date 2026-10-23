@@ -371,3 +371,23 @@ MOCK
   [ "$status" -ne 99 ]
   [[ "$output" == *"'openssl' command not found"* ]]
 }
+
+@test "main: wraps output in GITHUB_ACTIONS group commands when in GitHub Actions" {
+  fakebin="$TEST_TMPDIR/fakebin"
+  mkdir -p "$fakebin"
+  cat > "$fakebin/nix" <<'MOCK'
+#!/usr/bin/env bash
+echo "export MOCK_VAR='val'"
+MOCK
+  chmod +x "$fakebin/nix"
+
+  run bash -c '
+    source "$1/scripts/load-devshell.sh"
+    export PATH="$2:$PATH"
+    export GITHUB_ACTIONS="true"
+    main "."
+  ' _ "$REPO_ROOT" "$fakebin"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"::group::Loading devShell environment (.)"* ]]
+  [[ "$output" == *"::endgroup::"* ]]
+}

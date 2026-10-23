@@ -10,16 +10,26 @@ trap 'rm -rf -- "$workdir"' EXIT
 ENV_BIN="$(command -v env)"
 base_env="$workdir/base_env"
 merged_env="$workdir/merged_env"
+capture_done="$workdir/capture_done"
 
 # Dump the environments before and after sourcing setup_dev_env into files for later comparison.
 # The devShell hooks do not expect strict mode; disable it while sourcing so a non-zero status or
 # unset variable in the hook does not abort the capture.
+# Source it in a subshell so that an `exit` or an EXIT trap in the shellHook cannot terminate this
+# script early or replace its cleanup trap. The marker file is only created when sourcing ran to
+# completion, which lets us tell a finished capture apart from a premature exit.
 "$ENV_BIN" -0 > "$base_env"
-set +e +u
-set +o pipefail
-source "$setup_dev_env" >&2
-set -euo pipefail
-"$ENV_BIN" -0 > "$merged_env"
+(
+  set +e +u
+  set +o pipefail
+  trap - EXIT
+  source "$setup_dev_env" >&2
+  "$ENV_BIN" -0 > "$merged_env" && : > "$capture_done"
+) || true
+if [[ ! -e "$capture_done" ]]; then
+  echo "error: the devShell setup script (including shellHook) exited before completing; refusing to export a partial environment." >&2
+  exit 1
+fi
 
 # Store the pre-execution environment for lookups.
 base_keys=()

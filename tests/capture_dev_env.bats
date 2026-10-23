@@ -104,6 +104,41 @@ EOF
   [[ "$output" == *"CAPTURE_TEST_HOOK_OK=hooked"* ]]
 }
 
+@test "capture: fails when shellHook exits early with status 0" {
+  cat > "$TEST_TMPDIR/setup.sh" <<'EOF'
+export CAPTURE_TEST_BEFORE_EXIT="partial"
+exit 0
+EOF
+  run env -u BASH_ENV -u ENV bash --noprofile --norc "$CAPTURE" "$TEST_TMPDIR/setup.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"exited before completing"* ]]
+  [[ "$output" != *"CAPTURE_TEST_BEFORE_EXIT"* ]]
+}
+
+@test "capture: fails when shellHook exits early with non-zero status" {
+  cat > "$TEST_TMPDIR/setup.sh" <<'EOF'
+exit 3
+EOF
+  run env -u BASH_ENV -u ENV bash --noprofile --norc "$CAPTURE" "$TEST_TMPDIR/setup.sh"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"exited before completing"* ]]
+}
+
+@test "capture: shellHook EXIT trap does not break capture or cleanup" {
+  mkdir -p "$TEST_TMPDIR/tmp"
+  cat > "$TEST_TMPDIR/setup.sh" <<'EOF'
+trap 'echo "hook trap" >&2' EXIT
+export CAPTURE_TEST_WITH_TRAP="trapped"
+EOF
+  run env TMPDIR="$TEST_TMPDIR/tmp" bash -c '
+    env -u BASH_ENV -u ENV bash --noprofile --norc "$1" "$2" 2>/dev/null | tr "\0" "\n"
+  ' _ "$CAPTURE" "$TEST_TMPDIR/setup.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"CAPTURE_TEST_WITH_TRAP=trapped"* ]]
+  # The capture script's own workdir must still be cleaned up.
+  [ -z "$(ls -A "$TEST_TMPDIR/tmp")" ]
+}
+
 @test "capture: supports multiline values" {
   cat > "$TEST_TMPDIR/setup.sh" <<'EOF'
 export CAPTURE_TEST_MULTILINE=$'line1\nline2'

@@ -158,7 +158,10 @@ main() {
   # Run it in a clean environment by preventing external scripts from being sourced.
   local dev_env="$workdir/dev-env"
   local capture_dev_env="$SCRIPT_DIR/capture-dev-env.sh"
-  env -u BASH_ENV -u ENV bash --noprofile --norc "$capture_dev_env" "$setup_dev_env" > "$dev_env"
+  if ! env -u BASH_ENV -u ENV bash --noprofile --norc "$capture_dev_env" "$setup_dev_env" > "$dev_env"; then
+    echo "error: failed to capture the devShell environment for flake '$flake'." >&2
+    return 1
+  fi
 
   while IFS="=" read -r -d '' name value; do
     if [[ "$name" == "PATH" ]]; then

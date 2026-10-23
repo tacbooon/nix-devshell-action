@@ -245,6 +245,28 @@ teardown() {
   [[ "$output" == *"failed to run 'nix print-dev-env'"* ]]
 }
 
+@test "main: fails when the devShell setup script exits early" {
+  fakebin="$TEST_TMPDIR/fakebin"
+  mkdir -p "$fakebin"
+  cat > "$fakebin/nix" <<'MOCK'
+#!/usr/bin/env bash
+echo "export MOCK_APP_VAR='mock-value'"
+echo "exit 0"
+MOCK
+  chmod +x "$fakebin/nix"
+  run bash -c '
+    source "$1/scripts/load-devshell.sh"
+    export PATH="$2:$PATH"
+    export FLAKE="."
+    export EXPORT_ENV="MOCK_APP_*"
+    export EXPORT_PATH=""
+    main
+  ' _ "$REPO_ROOT" "$fakebin"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"failed to capture the devShell environment"* ]]
+  [ ! -s "$GITHUB_ENV" ]
+}
+
 @test "main: end-to-end with mocked nix (env + PATH filtering)" {
   fakebin="$TEST_TMPDIR/fakebin"
   fakepathdir="$TEST_TMPDIR/newpath"

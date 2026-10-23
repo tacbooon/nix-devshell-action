@@ -93,7 +93,9 @@ By default, nothing is written to `GITHUB_ENV`. To export variables, add pattern
 
 Suppose the devShell defines `APP_NAME` and `MYAPP_URL`. `APP_NAME` matches `APP_*`, so it is written to `GITHUB_ENV` and available in later steps. `MYAPP_URL` matches nothing, so it is skipped.
 
-The following are never written to `GITHUB_ENV`, even when they match a pattern: `_`, `ACTIONS_*`, `BASHOPTS`, `BASH_ENV`, `CI`, `ENV`, `EUID`, `GITHUB_*`, `IFS`, `OLDPWD`, `PATH`, `PPID`, `PWD`, `RUNNER_*`, `SHELLOPTS`, `SHLVL`, `UID`.
+The following are never written to `GITHUB_ENV`, even when they match a pattern: `_`, `ACTIONS_*`, `BASHOPTS`, `BASH_ENV`, `CI`, `DYLD_INSERT_LIBRARIES`, `ENV`, `EUID`, `GITHUB_*`, `IFS`, `LD_AUDIT`, `LD_PRELOAD`, `NODE_OPTIONS`, `OLDPWD`, `PATH`, `PPID`, `PROMPT_COMMAND`, `PS4`, `PWD`, `RUNNER_*`, `SHELLOPTS`, `SHLVL`, `UID`. Some of these, such as `LD_PRELOAD`, can make every process in later steps load arbitrary code.
+
+A devShell rewrites many more variables than the ones you define explicitly. Avoid broad patterns such as `*` and list only patterns that match the variables you need.
 
 ## Design
 

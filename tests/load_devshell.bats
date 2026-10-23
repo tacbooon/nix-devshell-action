@@ -140,6 +140,28 @@ teardown() {
   [ ! -s "$GITHUB_ENV" ]
 }
 
+@test "try_write_env: does not invoke openssl for non-matching vars" {
+  fakebin="$TEST_TMPDIR/fakebin"
+  mkdir -p "$fakebin"
+  cat > "$fakebin/openssl" <<'MOCK'
+#!/usr/bin/env bash
+echo "openssl should not be called" >&2
+exit 1
+MOCK
+  chmod +x "$fakebin/openssl"
+
+  EXPORT_ENV_PATTERNS=("APP_*")
+  run bash -c '
+    source "$1/scripts/load-devshell.sh"
+    export GITHUB_ENV="$2"
+    export PATH="$3:$PATH"
+    EXPORT_ENV_PATTERNS=("APP_*")
+    try_write_env "OTHER_VAR" "value"
+  ' _ "$REPO_ROOT" "$GITHUB_ENV" "$fakebin"
+  [ "$status" -eq 0 ]
+  [ ! -s "$GITHUB_ENV" ]
+}
+
 @test "try_write_env: writes nothing when no patterns configured" {
   EXPORT_ENV_PATTERNS=()
   try_write_env "APP_NAME" "my-app"

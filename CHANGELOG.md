@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-24
+
 ### Features
 
 - Add a `working-directory` input so the action can run in a subdirectory of a monorepo. Relative `flake` paths and `$PWD` in `export-path` are resolved from that directory.
@@ -55,6 +57,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial release.
 
-[Unreleased]: https://github.com/tacbooon/nix-devshell-action/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/tacbooon/nix-devshell-action/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/tacbooon/nix-devshell-action/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/tacbooon/nix-devshell-action/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/tacbooon/nix-devshell-action/releases/tag/v1.0.0

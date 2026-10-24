@@ -9,27 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - 2026-09-12
 
-### Fixed
+### Improvements
 
-- Add `BASH_ENV` and `ENV` to the denylist so a devShell can no longer
-  propagate them to later steps via `$GITHUB_ENV` (#1).
+- Add `BASH_ENV` and `ENV` to the denylist so a devShell can no longer propagate them to later steps via `$GITHUB_ENV` (#1).
 
-### Added
+### Documentation
 
-- Add `update-major-tag` workflow that moves the floating `v1` / `v1.2`
-  tags when a release tag like `v1.2.3` is pushed (#2).
+- Clarify the `flake` input description with an attribute-selection example (`.#ci`) (#4).
 
-### Changed
+### Maintenance
 
-- Clarify the `flake` input description with an attribute-selection
-  example (`.#ci`) (#4).
-- Scope the test workflow triggers to the `main` branch to avoid
-  duplicate runs on pull requests (#5).
-
-### Tests
-
-- Add a regression test verifying devShell `PATH` priority is preserved
-  when two directories provide the same tool (#3).
+- Add `update-major-tag` workflow that moves the floating `v1` / `v1.2` tags when a release tag like `v1.2.3` is pushed (#2).
+- Scope the test workflow triggers to the `main` branch to avoid duplicate runs on pull requests (#5).
+- Add a regression test verifying devShell `PATH` priority is preserved when two directories provide the same tool (#3).
 
 ## [1.0.0] - 2026-09-12
 
